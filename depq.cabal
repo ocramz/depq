@@ -6,7 +6,9 @@ homepage:       https://github.com/ocramz/depq
 bug-reports:    https://github.com/ocramz/depq/issues
 author:         Marco Zocca
 maintainer:     ocramz
-cabal-version:  1.12
+category:       Data, Data Structures, Data Mining
+cabal-version:  >=1.10
+tested-with:    GHC == 8.6.5
 copyright:      2020 Marco Zocca
 license:        BSD3
 license-file:   LICENSE
