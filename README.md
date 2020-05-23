@@ -6,7 +6,11 @@ This library provides a type for 'DEPQ's, along with functions for constructing 
 
 ## Usage
 
-The 'Data.DEPQ' module exports the user interface.
+The 'Data.DEPQ' module exports the user interface, which is similar to that of most Haskell data container libraries.
+
+The most common use case of this library is to populate a DEPQ (either from a 'Foldable' collection or by 'insert'ing incrementally) and query either or both of its extremes (with 'findMin', 'findMax', 'popMin', 'popMax', 'topK', 'bottomK').
+
+Have fun!
 
 ## Implementation 
 
