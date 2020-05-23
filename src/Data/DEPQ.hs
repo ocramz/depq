@@ -7,11 +7,13 @@ See https://en.wikipedia.org/wiki/Double-ended_priority_queue for definitions; t
 Based on `P.IntPSQ` : https://hackage.haskell.org/package/psqueues-0.2.7.2/docs/Data-IntPSQ.html
 -}
 module Data.DEPQ (
-   DEPQ, size,
+   DEPQ, 
    -- * Creation
    empty, fromList,
    -- * Predicates
    null,
+   -- * Properties
+   size, 
    -- * Modification
    insert, deleteMin, deleteMax, popMin, popMax,
    -- * Lookup
