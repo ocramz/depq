@@ -1,5 +1,5 @@
 name:           depq
-version:        0.1.0.0
+version:        0.2.0.0
 synopsis:       Double-ended priority queues
 description:    Double-ended priority queues, for efficient retrieval of minimum and maximum elements in ordered collections of items.
 homepage:       https://github.com/ocramz/depq
@@ -27,9 +27,9 @@ library
       src
   build-depends:
       base >=4.7 && <5
-    , containers
-    , deepseq
-    , psqueues
+    , containers >= 0.6.0.1
+    , deepseq >= 1.4.4
+    , psqueues >= 0.2.7.2
   default-language: Haskell2010
 
 

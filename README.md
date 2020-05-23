@@ -2,7 +2,7 @@
 
 Double-ended priority queues
 
-This library provides a type for 'DEPQ's, functions for constructing these and for querying them. 
+This library provides a type for 'DEPQ's, along with functions for constructing and querying them. 
 
 ## Usage
 
