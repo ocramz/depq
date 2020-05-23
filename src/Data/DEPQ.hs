@@ -7,7 +7,7 @@ See https://en.wikipedia.org/wiki/Double-ended_priority_queue for definitions; t
 Based on `P.IntPSQ` : https://hackage.haskell.org/package/psqueues-0.2.7.2/docs/Data-IntPSQ.html
 -}
 module Data.DEPQ (
-   DEPQ,
+   DEPQ, size,
    -- * Creation
    empty, fromList,
    -- * Predicates
@@ -28,7 +28,7 @@ import qualified Data.Sequence as S (Seq, empty, (|>))
 -- deepseq
 import Control.DeepSeq     (NFData (rnf))
 -- psqueues
-import qualified Data.IntPSQ as P (IntPSQ, empty, null, insert, delete, member, toList, fromList, findMin, delete, deleteMin)
+import qualified Data.IntPSQ as P (IntPSQ, empty, null, size, insert, delete, member, toList, fromList, findMin, delete, deleteMin)
 
 import Prelude hiding (null)
 
@@ -60,6 +60,10 @@ insert k p v (DEPQ mi ma) = DEPQ mi' ma'
 -- | The empty DEPQ
 empty :: DEPQ p a
 empty = DEPQ P.empty P.empty
+
+-- | Number of elements in the DEPQ
+size :: DEPQ p a -> Int
+size (DEPQ p _) = P.size p
 
 -- | Populate a DEPQ from a 'Foldable' container (e.g. a list)
 fromList :: (Foldable t, Ord p) =>
@@ -120,10 +124,14 @@ popMax q = do
   pure (x, q')
 
 -- | K highest-scoring entries in the DEPQ
+--
+-- NB : this returns an empty sequence if there are fewer than K elements in the DEPQ
 topK :: Ord p => Int -> DEPQ p v -> S.Seq (Int, p, v)
 topK = popK popMax
 
 -- | K lowest-scoring entries in the DEPQ
+--
+-- NB : this returns an empty sequence if there are fewer than K elements in the DEPQ
 bottomK :: Ord p => Int -> DEPQ p v -> S.Seq (Int, p, v)
 bottomK = popK popMin
 

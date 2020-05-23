@@ -1,5 +1,5 @@
 name:           depq
-version:        0.2.0.0
+version:        0.3.0.0
 synopsis:       Double-ended priority queues
 description:    Double-ended priority queues, for efficient retrieval of minimum and maximum elements in ordered collections of items.
 homepage:       https://github.com/ocramz/depq
