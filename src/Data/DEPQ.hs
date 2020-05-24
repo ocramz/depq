@@ -1,3 +1,5 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 {-| Double-ended priority queue (DEPQ)
 
 Allows for efficiently finding and removing both the minimum and maximum priority elements, due to the min-heap invariant property of the underlying representation.
@@ -12,6 +14,7 @@ module Data.DEPQ (
    empty, fromList,
    -- * Predicates
    null,
+   valid,
    -- * Properties
    size, 
    -- * Modification
@@ -30,11 +33,11 @@ import qualified Data.Sequence as S (Seq, empty, (|>))
 -- deepseq
 import Control.DeepSeq     (NFData (rnf))
 -- psqueues
-import qualified Data.IntPSQ as P (IntPSQ, empty, null, size, insert, delete, member, toList, fromList, findMin, delete, deleteMin)
+import qualified Data.IntPSQ as P (IntPSQ, empty, null, size, insert, delete, member, toList, fromList, findMin, delete, deleteMin, valid)
 
 import Prelude hiding (null)
 
-
+import Test.QuickCheck (Arbitrary(..), Gen)
 
 -- | A double-ended priority queue
 data DEPQ p a = DEPQ {
@@ -45,6 +48,13 @@ data DEPQ p a = DEPQ {
 instance (NFData p, NFData a) => NFData (DEPQ p a) where
   rnf (DEPQ mi ma) = rnf mi `seq` rnf ma
 
+instance (Ord p, Arbitrary p, Arbitrary a) => Arbitrary (DEPQ p a) where
+  arbitrary = fromList <$> (arbitrary :: Gen [(Int, p, a)])
+  -- Convert into list, shrink it, then convert it back as DEPQ
+  shrink depq = map fromList $ shrink $ toList depq
+   where
+     toList :: DEPQ p a -> [(Int, p, a)]
+     toList (DEPQ p _) = P.toList p
 
 -- | Insert an element
 insert :: (Ord p) =>
@@ -57,7 +67,6 @@ insert k p v (DEPQ mi ma) = DEPQ mi' ma'
     mi' = P.insert k p  v mi
     ma' = P.insert k (Down p) v ma
 {-# INLINE insert #-}
-
 
 -- | The empty DEPQ
 empty :: DEPQ p a
@@ -79,6 +88,9 @@ fromList = foldl insf empty where
 null :: DEPQ p v -> Bool
 null (DEPQ mi ma) = P.null mi && P.null ma
 
+-- | Is the DEPQ valid ?
+valid :: (Ord p) => DEPQ p v -> Bool
+valid (DEPQ mi ma) = P.valid mi && P.valid ma
 
 -- | Delete the minimum-priority element in the DEPQ
 deleteMin :: Ord p => DEPQ p a -> DEPQ p a
