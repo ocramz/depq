@@ -50,7 +50,7 @@ instance (NFData p, NFData a) => NFData (DEPQ p a) where
 
 instance (Ord p, Arbitrary p, Arbitrary a) => Arbitrary (DEPQ p a) where
   arbitrary = fromList <$> (arbitrary :: Gen [(Int, p, a)])
-  -- Convert into list, shrink it, then convert it back as DEPQ
+  -- Convert given DEPQ into list, shrink it, then convert it back
   shrink depq = map fromList $ shrink $ toList depq
    where
      toList :: DEPQ p a -> [(Int, p, a)]

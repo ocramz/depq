@@ -19,6 +19,7 @@ main :: IO ()
 main = hspec $ modifyMaxSuccess (const 1000) $ do
     validitySpec
     postConditionSpec
+    metamorphicSpec
     modelBasedSpec
 
 --------------------------------------------------------------------------------
@@ -26,14 +27,14 @@ main = hspec $ modifyMaxSuccess (const 1000) $ do
 --------------------------------------------------------------------------------
 
 -- We want our QuickCheck generators to generate edge cases which are:
---
--- 1. When we try to insert new value into DEPQ
+
+-- 1. When we try to insert a new value into DEPQ
 -- 2. When modification function tries to overwrite existing values
 -- 3. When DEPQ contains multiple key-pair values in which the key is different 
 -- (e.g insert 4 A "Val" $ insert 5 A "Val2" empty)
---
--- To enable this, use Priority type in which the range of values
--- are somewhat small and readable
+
+-- To enable this, we use Priority type in which the range of values
+-- are somewhat small and readable.
 data Priority
   = A
   | B
@@ -158,6 +159,39 @@ popMax_post_condition depq =
           mPoped
 
 --------------------------------------------------------------------------------
+-- Metamorphic
+-- Instead of testing single function, we're now going to test multiple set of
+-- functions
+--------------------------------------------------------------------------------
+
+metamorphicSpec :: Spec
+metamorphicSpec = describe "Metamorphic" $ do
+    prop "insert twice, findMax" insert_insert_findMax
+    prop "insert twice, findMin" insert_insert_findMin
+
+-- Insert 2 key value pairs, test that findMax return expected value
+insert_insert_findMax :: (Int, Priority, Val) -> (Int, Priority, Val) -> Property
+insert_insert_findMax t1@(k1, p1, v1) t2@(k2, p2, v2)
+      | k1 == k2 = D.findMax depq === Just t2
+      | p1 < p2 = D.findMax depq === Just t2
+      | p1 > p2 = D.findMax depq === Just t1
+      | k1 > k2 = D.findMax depq === Just t2
+      | otherwise = D.findMax depq === Just t1
+  where
+    depq = D.insert k2 p2 v2 $ D.insert k1 p1 v1 D.empty
+
+-- Insert 2 key value pairs, test that findMin return expected value
+insert_insert_findMin :: (Int, Priority, Val) -> (Int, Priority, Val) -> Property
+insert_insert_findMin t1@(k1, p1, v1) t2@(k2, p2, v2)
+      | k1 == k2 = D.findMin depq === Just t2
+      | p1 < p2 = D.findMin depq === Just t1
+      | p1 > p2 = D.findMin depq === Just t2
+      | k1 > k2 = D.findMin depq === Just t2
+      | otherwise = D.findMin depq === Just t1
+  where
+    depq = D.insert k2 p2 v2 $ D.insert k1 p1 v1 D.empty
+
+--------------------------------------------------------------------------------
 -- Model based testing
 -- Here, we test against a data structure that would act as an model
 -- (i.e. Something that would behave similar to DEPQ and is well tested)
@@ -201,7 +235,11 @@ convert (key, (priority, val)) = (key, priority, val)
 getVal :: Priority -> Model -> Maybe (Int, (Priority, Val))
 getVal priority model = M.lookupMin $ M.filter (\(p, _) -> p == priority) model
 
--- Set of functions
+getPriority :: (a, Priority, b) -> Priority
+getPriority (_, p, _) = p
+
+-- Set of functions which should behave the same way as the one that we're testing
+-- against
 
 size :: Model -> Int
 size model = length $ map convert $ M.toList model
@@ -215,7 +253,7 @@ lookupMax model =
         then Nothing
         else 
           let (_, maxPriority, _) = L.maximumBy
-                (\(_, p1, _) (_, p2, _) -> p1 `compare` p2) $ modelToList model
+                (\t1 t2 -> getPriority t1 `compare` getPriority t2) $ modelToList model
           in convert <$> getVal maxPriority model
 
 lookupMin :: Model -> Maybe (Int, Priority, Val)
@@ -224,19 +262,19 @@ lookupMin model =
         then Nothing
         else
           let (_, minPriority, _) = L.minimumBy
-                (\(_, p1, _) (_, p2, _) -> p1 `compare` p2) (modelToList model)
+                (\t1 t2 -> getPriority t1 `compare` getPriority t2) (modelToList model)
           in convert <$> getVal minPriority model
 
 takeTop :: Int -> Model -> Seq (Int, Priority, Val)
 takeTop num model =
     let sortedList = L.sortBy 
-          (\(_, p1, _) (_, p2, _) -> p2 `compare` p1) $ modelToList model
+          (\t1 t2 -> getPriority t2 `compare` getPriority t1) $ modelToList model
     in Seq.fromList $ take num sortedList
 
 takeBottom :: Int -> Model -> Seq (Int, Priority, Val)
 takeBottom num model =
     let sortedList =
-          L.sortBy (\(_, p1, _) (_, p2, _) -> p1 `compare` p2) $ modelToList model
+          L.sortBy (\t1 t2 -> getPriority t1 `compare` getPriority t2) $ modelToList model
     in Seq.fromList $ take num sortedList
 
 deleteMax :: Model -> Model
@@ -247,7 +285,7 @@ deleteMax model =
         -- at least 1 element
         else
             let (_, maxPriority, _) = L.maximumBy
-                  (\(_, p1, _) (_, p2, _) -> p1 `compare` p2)
+                  (\t1 t2 -> getPriority t1 `compare` getPriority t2)
                   (modelToList model)
                 (k, _) = fromJust $ getVal maxPriority model
             in M.delete k model
@@ -258,7 +296,7 @@ deleteMin model =
         then model
         else
             let (_, minPriority, _) = L.minimumBy
-                  (\(_, p1, _) (_, p2, _) -> p1 `compare` p2) $ modelToList model
+                  (\t1 t2 -> getPriority t1 `compare` getPriority t2) $ modelToList model
                 (k, _) = fromJust $ getVal minPriority model
             in M.delete k model
 
