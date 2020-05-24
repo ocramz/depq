@@ -1,13 +1,26 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-
-{-| Double-ended priority queue (DEPQ)
-
-Allows for efficiently finding and removing both the minimum and maximum priority elements, due to the min-heap invariant property of the underlying representation.
-
-See https://en.wikipedia.org/wiki/Double-ended_priority_queue for definitions; the current implementation is based on the "dual structure" method outlined in the wikipedia page.
-
-Based on `P.IntPSQ` : https://hackage.haskell.org/package/psqueues-0.2.7.2/docs/Data-IntPSQ.html
--}
+------------------------------------------------------------------------
+-- |
+-- Module      :  Data.DEPQ
+-- Copyright   :  (c) Marco Zocca 2020
+-- License     :  BSD3-style (see LICENSE)
+--
+-- Maintainer  :  @ocramz
+-- Stability   :  experimental
+-- Portability :  portable
+--
+-- Double-ended priority queue (DEPQ)
+--
+-- Allows for efficiently finding and removing both the minimum and maximum priority elements, due to the min-heap invariant property of the underlying representation.
+--
+-- See https://en.wikipedia.org/wiki/Double-ended_priority_queue for definitions; the current implementation is based on the "dual structure" method outlined in the wikipedia page.
+--
+-- Based on `P.IntPSQ` : https://hackage.haskell.org/package/psqueues-0.2.7.2/docs/Data-IntPSQ.html
+--
+-- = Usage
+--
+-- Populate a DEPQ (either from a `Foldable` collection such as a list or array or by `insert`ing incrementally) and query either of its extremes (with `findMin`, `findMax`, `popMin`, `popMax`, `topK`, `bottomK`).
+------------------------------------------------------------------------
 module Data.DEPQ (
    DEPQ, 
    -- * Creation
@@ -16,7 +29,7 @@ module Data.DEPQ (
    null,
    valid,
    -- * Properties
-   size, 
+   size,
    -- * Modification
    insert, deleteMin, deleteMax, popMin, popMax,
    -- * Lookup
@@ -33,7 +46,7 @@ import qualified Data.Sequence as S (Seq, empty, (|>))
 -- deepseq
 import Control.DeepSeq     (NFData (rnf))
 -- psqueues
-import qualified Data.IntPSQ as P (IntPSQ, empty, null, size, insert, delete, member, toList, fromList, findMin, delete, deleteMin, valid)
+import qualified Data.IntPSQ as P (IntPSQ, empty, null, size, insert, delete, toList, findMin, delete, deleteMin, valid)
 
 import Prelude hiding (null)
 
