@@ -1,5 +1,11 @@
 # depq
 
+[![Hackage](https://img.shields.io/hackage/v/depq.svg?logo=haskell)](https://hackage.haskell.org/package/depq)
+
+[![Hackage-deps](https://img.shields.io/hackage-depq/v/depq.svg)]()
+
+
+
 Double-ended priority queues
 
 This library provides a type for 'DEPQ's, along with functions for constructing and querying them. 
