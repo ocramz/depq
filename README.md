@@ -1,7 +1,6 @@
 # depq
 
 [![Hackage](https://img.shields.io/hackage/v/depq.svg?logo=haskell)](https://hackage.haskell.org/package/depq)
-
 [![depq](http://stackage.org/package/depq/badge/nightly)](http://stackage.org/nightly/package/depq)
 
 Double-ended priority queues
