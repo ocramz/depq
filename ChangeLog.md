@@ -1,5 +1,8 @@
 # Changelog for depq
 
+## 0.4.1
+* add Foldable instance
+
 ## 0.4
 * Add test suite ( @HirotoShioi )
 

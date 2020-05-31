@@ -58,6 +58,9 @@ data DEPQ p a = DEPQ {
   , maxHeap :: P.IntPSQ (Down p) a
                      } deriving (Eq, Show)
 
+instance Foldable (DEPQ p) where
+  foldr f z (DEPQ mi _) = foldr f z mi
+
 instance (NFData p, NFData a) => NFData (DEPQ p a) where
   rnf (DEPQ mi ma) = rnf mi `seq` rnf ma
 
