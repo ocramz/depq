@@ -1,5 +1,8 @@
 # Changelog for depq
 
+## 0.4.2
+* add 'lookup' , 'toList', 'delete'
+
 ## 0.4.1
 * add Foldable instance
 

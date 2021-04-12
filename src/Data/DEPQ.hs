@@ -20,20 +20,26 @@
 -- = Usage
 --
 -- Populate a DEPQ (either from a `Foldable` collection such as a list or array or by `insert`ing incrementally) and query either of its extremes (with `findMin`, `findMax`, `popMin`, `popMax`, `topK`, `bottomK`).
+--
+-- = Note
+--
+-- Import this module qualified (e.g. @import qualified Data.DEPQ as DQ@ or similar), as some of the function names are pretty common (e.g. `lookup`, `empty`), and might collide with similar functions imported from other libraries.
 ------------------------------------------------------------------------
 module Data.DEPQ (
    DEPQ, 
    -- * Creation
-   empty, fromList,
+   empty,
+   -- * Conversion from/to lists
+   fromList, toList,
    -- * Predicates
    null,
    valid,
    -- * Properties
    size,
    -- * Modification
-   insert, deleteMin, deleteMax, popMin, popMax,
+   insert, delete, deleteMin, deleteMax, popMin, popMax,
    -- * Lookup
-   findMin, findMax,
+   lookup, findMin, findMax,
    -- ** Top-K lookup
    topK, bottomK
   ) where
@@ -46,9 +52,9 @@ import qualified Data.Sequence as S (Seq, empty, (|>))
 -- deepseq
 import Control.DeepSeq     (NFData (rnf))
 -- psqueues
-import qualified Data.IntPSQ as P (IntPSQ, empty, null, size, insert, delete, toList, findMin, delete, deleteMin, valid)
+import qualified Data.IntPSQ as P (IntPSQ, empty, null, size, insert, delete, toList, findMin, delete, deleteMin, valid, lookup)
 
-import Prelude hiding (null)
+import Prelude hiding (null, lookup)
 
 import Test.QuickCheck (Arbitrary(..), Gen)
 
@@ -68,9 +74,7 @@ instance (Ord p, Arbitrary p, Arbitrary a) => Arbitrary (DEPQ p a) where
   arbitrary = fromList <$> (arbitrary :: Gen [(Int, p, a)])
   -- Convert given DEPQ into list, shrink it, then convert it back
   shrink depq = map fromList $ shrink $ toList depq
-   where
-     toList :: DEPQ p a -> [(Int, p, a)]
-     toList (DEPQ p _) = P.toList p
+
 
 -- | Insert an element
 insert :: (Ord p) =>
@@ -92,6 +96,13 @@ empty = DEPQ P.empty P.empty
 size :: DEPQ p a -> Int
 size (DEPQ p _) = P.size p
 
+-- | Lookup a key
+lookup :: Int -- ^ lookup key
+       -> DEPQ p v
+       -> Maybe (p, v)
+lookup k (DEPQ p _) = P.lookup k p
+{-# inline lookup #-}
+
 -- | Populate a DEPQ from a 'Foldable' container (e.g. a list)
 fromList :: (Foldable t, Ord p) =>
             t (Int, p, a) -- ^ (key, priority, value)
@@ -100,6 +111,13 @@ fromList = foldl insf empty where
   insf acc (k,p,v) = insert k p v acc
 {-# inline fromList #-}
 
+-- | Produce a list of (key, priority, value) triples with the entries of the DEPQ
+--
+-- Note : the order of the output list is undefined
+toList :: DEPQ p v -> [(Int, p, v)]
+toList (DEPQ p _) = P.toList p
+{-# inline toList #-}
+
 -- | Is the DEPQ empty ?
 null :: DEPQ p v -> Bool
 null (DEPQ mi ma) = P.null mi && P.null ma
@@ -107,6 +125,15 @@ null (DEPQ mi ma) = P.null mi && P.null ma
 -- | Is the DEPQ valid ?
 valid :: (Ord p) => DEPQ p v -> Bool
 valid (DEPQ mi ma) = P.valid mi && P.valid ma
+
+-- | Delete a (key, priority, value) triple from the queue. When
+-- the key is not a member of the queue, the original queue is returned.
+delete :: Ord p => Int -- ^ key of the triple to be deleted
+       -> DEPQ p a -> DEPQ p a
+delete k (DEPQ mi ma) = DEPQ mi' ma'
+  where
+    mi' = P.delete k mi
+    ma' = P.delete k ma
 
 -- | Delete the minimum-priority element in the DEPQ
 deleteMin :: Ord p => DEPQ p a -> DEPQ p a
